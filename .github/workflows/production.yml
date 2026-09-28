@@ -1,0 +1,31 @@
+name: Production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check configuration
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          APPLICATION_CHAT_ID: ${{ secrets.APPLICATION_CHAT_ID }}
+          BOT_VERSION: ${{ vars.BOT_VERSION }}
+        run: |
+          python -c "import os; print('BOT_TOKEN: OK' if os.getenv('BOT_TOKEN') else 'BOT_TOKEN: MISSING')"
+          python -c "import os; print('APPLICATION_CHAT_ID:', os.getenv('APPLICATION_CHAT_ID'))"
+          python -c "import os; print('BOT_VERSION:', os.getenv('BOT_VERSION'))"
