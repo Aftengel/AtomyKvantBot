@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
-load_dotenv(".env.prod") #which versions should be loaded
+load_dotenv()
 
 print("BOT_TOKEN найден:", os.getenv("BOT_TOKEN") is not None)
 print("APPLICATION_CHAT_ID:", os.getenv("APPLICATION_CHAT_ID"))
