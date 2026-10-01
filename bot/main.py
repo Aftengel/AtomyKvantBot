@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
-load_dotenv(".env.dev")
+load_dotenv()
 
 print("BOT_TOKEN найден:", os.getenv("BOT_TOKEN") is not None)
 print("APPLICATION_CHAT_ID:", os.getenv("APPLICATION_CHAT_ID"))
@@ -704,4 +704,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())I
+    asyncio.run(main())
