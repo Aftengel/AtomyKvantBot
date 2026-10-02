@@ -16,7 +16,7 @@ print("BOT_TOKEN найден:", os.getenv("BOT_TOKEN") is not None)
 print("APPLICATION_CHAT_ID:", os.getenv("APPLICATION_CHAT_ID"))
 
 TOKEN = os.getenv("BOT_TOKEN")
-#APPLICATION_CHAT_ID = int(os.getenv("APPLICATION_CHAT_ID"))
+APPLICATION_CHAT_ID = int(os.getenv("APPLICATION_CHAT_ID"))
 BOT_VERSION = os.getenv("BOT_VERSION", "unknown")
 
 
