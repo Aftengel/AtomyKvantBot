@@ -1,5 +1,6 @@
 import asyncio
 import os
+from ast import parse
 from ctypes import LibraryLoader
 
 from aiogram import Bot, Dispatcher
@@ -15,7 +16,7 @@ print("BOT_TOKEN найден:", os.getenv("BOT_TOKEN") is not None)
 print("APPLICATION_CHAT_ID:", os.getenv("APPLICATION_CHAT_ID"))
 
 TOKEN = os.getenv("BOT_TOKEN")
-APPLICATION_CHAT_ID = int(os.getenv("APPLICATION_CHAT_ID"))
+#APPLICATION_CHAT_ID = int(os.getenv("APPLICATION_CHAT_ID"))
 BOT_VERSION = os.getenv("BOT_VERSION", "unknown")
 
 
@@ -29,7 +30,8 @@ class ConsultationForm(StatesGroup):
 
 class PartnerForm(StatesGroup):
     full_name = State()
-    name_city = State()
+    name = State()
+    city = State()
     experience = State()
 
 class MarinaQuestionForm(StatesGroup):
@@ -37,7 +39,7 @@ class MarinaQuestionForm(StatesGroup):
 
 #Showing bot-version below
 def with_version(text: str) -> str:
-    return f"{text}\n\n────────────\n🤖 AtomyKvantBot v{BOT_VERSION}"
+    return f"{text}\n\n\n<i>AtomyKvantBot v{BOT_VERSION}</i>"
 
 #Main menu (returning user here after success application)
 def main_menu_keyboard():
@@ -81,45 +83,63 @@ async def start_handler(message: Message):
 
     await message.answer(
         with_version(
-            "Здравствуйте! Официальный интерактивный помощник команды Atomy.\n"
+            "Здравствуйте! <b>Вас приветсвует Официальный интерактивный помощник команды Atomy</b>\n"
             "Мы помогаем подобрать оригинальную корейскую продукцию напрямую "
             "с заводов Южной Кореи и защищаем от подделок с маркетплейсов.\n\n"
             "Прежде чем мы начнем, пожалуйста, подтвердите ознакомление "
             "с правовыми документами:\n\n"
-            "📄 Политика обработки персональных данных (ФЗ-152)\n"
-            "📜 Публичная оферта сервиса\n"
-            "📬 Согласие на получение информационно-рекламных рассылок (ФЗ-38)",
+            "📄 <i>Политика обработки персональных данных (ФЗ-152)</i>\n"
+            "📜 <i>Публичная оферта сервиса</i>\n"
+            "📬 <i>Согласие на получение информационно-рекламных рассылок (ФЗ-38)</i>",
            ),
+            parse_mode="HTML",
             reply_markup=keyboard
 
     )
 
 
-@dp.callback_query(lambda callback: callback.data == "agree")
-async def agree_handler(callback: CallbackQuery):
-    await callback.answer()
-
-    keyboard = InlineKeyboardMarkup(
+def main_menu_keyboard():
+    return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="👤 Я клиент",
+                    text="🌿 Подобрать уход / Защита от подделок Ozon",
                     callback_data="client"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text="🤝 Я партнёр",
+                    text="💰 Узнать про доход и партнерство",
                     callback_data="partner"
                 )
             ]
         ]
     )
 
+@dp.callback_query(lambda callback: callback.data == "main_menu")
+async def main_menu_handler(callback: CallbackQuery):
+    await callback.answer()
+
     await callback.message.edit_text(
-        "Отлично! 👋\n\n"
-        "Добро пожаловать в Atomy Kvant!\n"
-        "Пожалуйста, выберите нужный раздел:",
+        "Вас вновь приветствует <b>команда Atomy</b>! ✅\n\n"
+        "Мы представляем вам качественные и оригинальные товары на любой вкус от корейской компании! 🌐\n\n"
+        "Пожалуйста, выберите что вас интересует:",
+        parse_mode="HTML",
+        reply_markup=main_menu_keyboard()
+    )
+
+@dp.callback_query(lambda callback: callback.data == "agree")
+async def agree_handler(callback: CallbackQuery):
+    await callback.answer()
+
+    keyboard = main_menu_keyboard()
+
+    await callback.message.edit_text(
+        "Здравствуйте! 👋\n\n"
+        "Вас вновь приветствует <b>команда Atomy</b>! ✅\n\n"
+        "Мы представляем вам качественные и оригинальные товары на любой вкус от корейской компании! 🌐\n\n"
+        "Пожалуйста, выберите что вас интересует:",
+        parse_mode="HTML",
         reply_markup=keyboard
     )
 
@@ -130,18 +150,6 @@ async def client_handler(callback: CallbackQuery):
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="🧴 Мунивер / ХемоХИМ",
-                    callback_data="muniver"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="✨ Набор Absolute",
-                    callback_data="absolute"
-                )
-            ],
             [
                 InlineKeyboardButton(
                     text="📞 Получить консультацию / Заказать товар",
@@ -159,14 +167,36 @@ async def client_handler(callback: CallbackQuery):
                     text="🎁 Как покупать по оптовой цене Кореи",
                     callback_data="wholesale"
                 )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="⬅️ Назад",
+                    callback_data="main_menu"
+                )
             ]
         ]
     )
 
     await callback.message.edit_text(
-        "👤 Клиентский раздел\n\n"
-        "Здесь вы можете ознакомиться с продукцией "
-        "Atomy, посмотреть каталог или получить консультацию.",
+        "🌿 <b>Клиентский раздел</b>\n\n"
+        "Здесь вы можете подобрать продукцию Atomy, "
+        "узнать цены и получить помощь с заказом.\n\n"
+
+        "🧴 <b>Мунивер / ХемоХИМ</b>\n"
+        "Здоровье и суставы\n"
+        "💰 <u>2 000 ₽</u>\n"
+        "⭐ <u>15 000 PV</u>\n\n"
+
+        "✨ <b>Набор Absolute</b>\n"
+        "Омоложение кожи\n"
+        "💰 <u>15 000 ₽</u>\n"
+        "⭐ <u>100 000 PV</u>\n\n"
+
+        "<b>⚠️ Важно про Ozon</b>\n"
+        "На маркетплейсах могут встречаться товары "
+        "неофициального происхождения. "
+        "Перед покупкой рекомендуем проверить источник продукции.",
+        parse_mode="HTML",
         reply_markup=keyboard
     )
 
@@ -199,9 +229,10 @@ async def catalog_handler(callback: CallbackQuery):
 
     await callback.message.edit_text(
         with_version(
-            "🧴 Каталог флагманов\n\n"
+            "🧴 <b>Каталог флагманов</b>\n\n"
             "Выберите интересующий продукт:"
         ),
+        parse_mode="HTML",
         reply_markup=keyboard
     )
 @dp.callback_query(lambda callback: callback.data == "wholesale")
@@ -227,20 +258,21 @@ async def wholesale_handler(callback: CallbackQuery):
 
     await callback.message.edit_text(
         with_version(
-            "🎁 Как покупать по оптовой цене Кореи?\n\n"
+            "🎁 <i>Как покупать по оптовой цене Кореи?</i>\n\n"
             "После бесплатной регистрации в клубе Atomy "
             "вы сможете покупать продукцию по клубной цене.\n\n"
             "Например:\n\n"
-            "🧴 Мунивер / ХемоХИМ\n"
-            "Гостевая цена — 2 600 ₽\n"
-            "Клубная цена — 2 000 ₽\n\n"
-            "✨ Absolute\n"
-            "Гостевая цена — 18 000 ₽\n"
-            "Клубная цена — 15 000 ₽\n\n"
+            "🧴 <b>Мунивер / ХемоХИМ</b>\n"
+            "<u>Гостевая цена — 2 600 ₽</u>\n"
+            "<u>Клубная цена — 2 000 ₽</u>\n\n"
+            "✨ <b>Absolute</b>\n"
+            "<u>Гостевая цена — 18 000 ₽</u>\n"
+            "<u>Клубная цена — 15 000 ₽</u>\n\n"
             "Чтобы узнать подробнее о регистрации, "
             "получить консультацию или оформить заказ, "
             "нажмите кнопку ниже."
         ),
+        parse_mode="HTML",
         reply_markup=keyboard
     )
 
@@ -253,22 +285,23 @@ async def muniver_handler(callback: CallbackQuery):
             [
                 InlineKeyboardButton(
                     text="⬅️ Назад",
-                    callback_data="client"
+                    callback_data="catalog"
                 )
             ]
         ]
     )
 
     await callback.message.edit_text(
-        "🧴 Мунивер / ХемоХИМ\n\n"
+        "🧴 <b>Мунивер / ХемоХИМ</b>\n\n"
         "Комплекс продуктов Atomy на основе HemoHIM.\n\n"
         "💰 Стоимость:\n"
-        "• Гостевая цена — 2 600 ₽\n"
-        "• Клубная цена — 2 000 ₽\n"
-        "• 15 000 PV\n\n"
+        "<u>Гостевая цена — 2 600 ₽</u>\n"
+        "<u>Клубная цена — 2 000 ₽</u>\n"
+        "<u>15 000 PV</u>\n\n"
         "Если хотите узнать подробнее или оформить заказ, "
         "вернитесь в клиентский раздел и выберите "
-        "«📞 Получить консультацию / Заказать товар».",
+        "«📞 <b>Получить консультацию / Заказать товар».</b>",
+        parse_mode="HTML",
         reply_markup=keyboard
     )
 
@@ -281,22 +314,23 @@ async def absolute_handler(callback: CallbackQuery):
             [
                 InlineKeyboardButton(
                     text="⬅️ Назад",
-                    callback_data="client"
+                    callback_data="catalog"
                 )
             ]
         ]
     )
 
     await callback.message.edit_text(
-        "🧴 Комплект Absolute\n\n"
+        "🧴 <b>Комплект Absolute</b>\n\n"
         "Комплекс продуктов Atomy на основе HemoHIM.\n\n"
         "💰 Стоимость:\n"
-        "• Гостевая цена — 18 000 ₽\n"
-        "• Клубная цена — 15 000 ₽\n"
-        "• 100 000 PV\n\n"
+        "<u>Гостевая цена — 18 000 ₽</u>\n"
+        "<u>Клубная цена — 15 000 ₽</u>\n"
+        "<u>100 000 PV</u>\n\n"
         "Если хотите узнать подробнее или оформить заказ, "
         "вернитесь в клиентский раздел и выберите "
-        "«📞 Получить консультацию / Заказать товар».",
+        "«📞 <b>Получить консультацию / Заказать товар».</b>",
+        parse_mode="HTML",
         reply_markup=keyboard
     )
 
@@ -311,9 +345,10 @@ async def consultation_handler(
     await state.set_state(ConsultationForm.full_name)
 
     await callback.message.edit_text(
-        "📞 Консультация / Заказ товара\n\n"
-        "Давайте оформим заявку.\n\n"
-        "Пожалуйста, напишите ваше ФИО:"
+        "📞 <b>Консультация / Заказ товара</b>\n\n"
+        "Давайте оформим заявку\n\n"
+        "Пожалуйста, напишите <u>ваше ФИО</u>:",
+        parse_mode="HTML",
     )
 
 @dp.message(ConsultationForm.full_name)
@@ -323,8 +358,9 @@ async def process_full_name(message: Message, state: FSMContext):
     await state.set_state(ConsultationForm.phone)
 
     await message.answer(
-        "📱 Отлично!\n\n"
-        "Теперь отправьте ваш номер телефона."
+        "📞 <b>Консультация / Заказ товара</b>\n\n"
+        "Теперь отправьте <u>ваш номер телефона</u>:",
+        parse_mode = "HTML",
     )
 
 @dp.message(ConsultationForm.phone)
@@ -334,8 +370,9 @@ async def process_phone(message: Message, state: FSMContext):
     await state.set_state(ConsultationForm.city)
 
     await message.answer(
-        "🌍 Супер!\n\n"
-        "Теперь напишите ваш город."
+        "📞 <b>Консультация / Заказ товара</b>\n\n"
+        "Теперь напишите <u>ваш город</u>:",
+        parse_mode = "HTML",
     )
 
 @dp.message(ConsultationForm.city)
@@ -345,9 +382,10 @@ async def process_city(message: Message, state: FSMContext):
     await state.set_state(ConsultationForm.product)
 
     await message.answer(
-        "🛍 Отлично!\n\n"
-        "Теперь напишите, какой товар вас интересует "
-        "или задайте свой вопрос"
+        "📞 <b>Консультация / Заказ товара</b>\n\n"
+        "Теперь напишите, какой товар вас интересует"
+        "или задайте свой вопрос",
+        parse_mode = "HTML",
     )
 
 @dp.message(ConsultationForm.product)
@@ -384,9 +422,10 @@ async def process_product(message: Message, state: FSMContext):
     keyboard = main_menu_keyboard()
 
     await message.answer(
-        "✅ Спасибо! Ваша заявка успешно отправлена\n\n"
+        "✅ <b>Спасибо! Ваша заявка успешно отправлена</b>\n\n"
         "Мы получили ваши данные и скоро с вами свяжемся\n\n"
         "Вы можете продолжить работу с ботом:",
+        parse_mode="HTML",
         reply_markup=keyboard
     )
 
@@ -397,18 +436,37 @@ async def partner_application_handler(
 ):
     await callback.answer()
 
-    await state.set_state(PartnerForm.name_city)
+    await state.set_state(PartnerForm.name)
 
     await callback.message.edit_text(
-        "🚀 Заявка на собеседование\n\n"
-        "Для начала напишите ваше имя и город:"
+        "🚀 <b>Заявка на собеседование</b>\n\n"
+        "Для начала напишите <u>ваше имя</u>:",
+        parse_mode = "HTML"
     )
-@dp.message(PartnerForm.name_city)
-async def process_partner_name_city(
+
+
+@dp.message(PartnerForm.name)
+async def process_partner_name(
     message: Message,
     state: FSMContext
 ):
-    await state.update_data(name_city=message.text)
+    await state.update_data(partner_name=message.text)
+
+    await state.set_state(PartnerForm.city)
+
+    await message.answer(
+        "🚀 <b>Заявка на собеседование</b>\n\n"
+        "Теперь напишите <u>ваш город:</u>",
+        parse_mode="HTML"
+    )
+
+
+@dp.message(PartnerForm.city)
+async def process_partner_city(
+    message: Message,
+    state: FSMContext
+):
+    await state.update_data(partner_city=message.text)
 
     await state.set_state(PartnerForm.experience)
 
@@ -434,12 +492,15 @@ async def process_partner_name_city(
     )
 
     await message.answer(
-        "💼 Есть ли у вас опыт в продажах, "
+        "🚀 <b>Заявка на собеседование</b>\n\n"
+        "Есть ли у вас опыт в продажах, "
         "бьюти-сфере или сетевом бизнесе?",
+        parse_mode="HTML",
         reply_markup=keyboard
     )
 
 @dp.callback_query(
+    PartnerForm.experience,
     lambda callback: callback.data in {
         "experience_yes",
         "experience_no",
@@ -451,7 +512,7 @@ async def process_partner_experience(
     state: FSMContext
 ):
     print("🔥 EXPERIENCE HANDLER ЗАПУЩЕН")
-    print("callback.data:", callback.data)
+    print("🔥 callback.data:", callback.data)
 
     await callback.answer()
 
@@ -476,13 +537,14 @@ async def process_partner_experience(
 
     application_text = (
         "🎯 ЗАЯВКА НА ПАРТНЁРСТВО В КОМАНДУ\n\n"
-        f"👤 Имя и город: {data['name_city']}\n"
+        f"👤 Имя: {data['partner_name']}\n"
+        f"🏙 Город: {data['partner_city']}\n"
         f"💼 Опыт: {data['experience']}\n\n"
         f"🆔 Telegram ID: {callback.from_user.id}\n"
         f"👤 Username: {username_text}"
     )
 
-    print("🔥 Заявка сформирована")
+    print("🔥 Заявка сформирована:")
     print(application_text)
 
     try:
@@ -508,24 +570,23 @@ async def process_partner_experience(
     print("✅ FSM очищен")
 
     await callback.message.edit_text(
-        "✅ Заявка успешно отправлена!\n\n"
+        "✅ <b>Заявка успешно отправлена!</b>\n\n"
         "Марина получила ваши данные и свяжется с вами "
-        "для дальнейшего общения.\n\n"
-        "Спасибо за интерес к команде Atomy!\n\n"
+        "для дальнейшего общения\n\n"
+        "<u>Спасибо за интерес к команде Atomy!</u>\n\n"
         "Вы можете продолжить работу с ботом:",
+        parse_mode = "HTML",
         reply_markup=main_menu_keyboard()
     )
 
     print("✅ Сообщение пользователю изменено")
 
-
-
 #test checking
-@dp.message()
-async def get_chat_id(message: Message):
-    print(f"CHAT ID: {message.chat.id}")
-    print(f"CHAT TYPE: {message.chat.type}")
-    print(f"CHAT TITLE: {message.chat.title}")
+#@dp.message()
+#async def get_chat_id(message: Message):
+#    print(f"CHAT ID: {message.chat.id}")
+#    print(f"CHAT TYPE: {message.chat.type}")
+#    print(f"CHAT TITLE: {message.chat.title}")
 
 
 @dp.callback_query(lambda callback: callback.data == "partner")
@@ -543,7 +604,7 @@ async def partner_handler(callback: CallbackQuery):
             [
                 InlineKeyboardButton(
                     text="⬅️ Назад",
-                    callback_data="client"
+                    callback_data="main_menu"
                 )
             ]
         ]
@@ -551,19 +612,20 @@ async def partner_handler(callback: CallbackQuery):
 
     await callback.message.edit_text(
         (
-            "💰 Партнёрская программа\n\n"
-            "Давайте честно: почему 90% людей боятся слова "
-            "«сетевой»?\n\n"
+            "💰 <b>Партнёрская программа</b>\n\n"
+            "Давайте честно: <u>почему 90% людей боятся слова "
+            "«сетевой»?</u>\n\n"
             "Потому что людей часто заставляют каждый месяц "
             "покупать ненужный товар, бегать с каталогами и "
             "впаривать продукцию знакомым.\n\n"
             "В Atomy всё устроено иначе:\n\n"
-            "1. НЕТ обязательных ежемесячных закупок.\n"
+            "1. <b>НЕТ</b> обязательных ежемесячных закупок.\n"
             "Вы покупаете только то, что действительно нужно.\n\n"
-            "2. Ваши личные баллы (PV) НЕ СГОРАЮТ.\n\n"
+            "2. Ваши личные баллы (PV) <b>НЕ СГОРАЮТ</b>.\n\n"
             "3. Доход формируется от общего товарооборота "
             "двух веток структуры."
         ),
+        parse_mode="HTML",
         reply_markup=keyboard
     )
 
@@ -591,18 +653,19 @@ async def partner_income_handler(callback: CallbackQuery):
 
     await callback.message.edit_text(
         (
-            "💰 Откуда берутся выплаты?\n\n"
+            "💰 <b>Откуда берутся выплаты?</b>\n\n"
             "Вы бесплатно регистрируетесь, пробуете продукцию "
             "и рассказываете о ней друзьям или знакомым.\n\n"
             "Баллы за покупки суммируются в вашей левой "
             "и правой ветке.\n\n"
             "Когда в структуре накапливается необходимый "
             "оборот, формируются выплаты.\n\n"
-            "• Semi-Master — от 15 000 до 30 000 ₽ в месяц\n"
-            "• Master — от 60 000 до 120 000 ₽ в месяц\n\n"
-            "Логику доставки, склад, сертификацию и разработку "
-            "берёт на себя корпорация Atomy."
+            "<u>Semi-Master — от 15 000 до 30 000 ₽ в месяц</u>\n"
+            "<u>Master — от 60 000 до 120 000 ₽ в месяц</u>\n\n"
+            "<i>Логику доставки, склад, сертификацию и разработку "
+            "берёт на себя корпорация Atomy.</i>"
         ),
+        parse_mode="HTML",
         reply_markup=keyboard
     )
 
@@ -611,13 +674,18 @@ async def ask_marina_handler(
     callback: CallbackQuery,
     state: FSMContext
 ):
+    print("🔥 ASK MARINA HANDLER ЗАПУЩЕН")
+
     await callback.answer()
 
     await state.set_state(MarinaQuestionForm.question)
 
+    print("🔥 STATE УСТАНОВЛЕН:", await state.get_state())
+
     await callback.message.edit_text(
-        "❓ Вопрос Марине\n\n"
-        "Напишите ваш вопрос одним сообщением:"
+        "❓ <b>Вопрос Марине</b>\n\n"
+        "Напишите ваш вопрос <u>одним сообщением</u>:",
+        parse_mode="HTML"
     )
 
 @dp.message(MarinaQuestionForm.question)
@@ -625,6 +693,10 @@ async def process_marina_question(
     message: Message,
     state: FSMContext
 ):
+    print("🔥 MARINA QUESTION HANDLER ЗАПУЩЕН")
+    print(f"🔥 Текст вопроса: {message.text}")
+    print(f"🔥 APPLICATION_CHAT_ID: {APPLICATION_CHAT_ID}")
+
     username = message.from_user.username
     username_text = f"@{username}" if username else "не указан"
 
@@ -635,16 +707,37 @@ async def process_marina_question(
         f"👤 Username: {username_text}"
     )
 
-    await message.bot.send_message(
-        chat_id=APPLICATION_CHAT_ID,
-        text=question_text
-    )
+    print("🔥 ВОПРОС СФОРМИРОВАН:")
+    print(question_text)
+
+    try:
+        print("🔥 ПЫТАЕМСЯ ОТПРАВИТЬ В ЧАТ...")
+
+        await message.bot.send_message(
+            chat_id=APPLICATION_CHAT_ID,
+            text=question_text
+        )
+
+        print("✅ ВОПРОС УСПЕШНО ОТПРАВЛЕН В ЧАТ")
+
+    except Exception as e:
+        print("❌ ОШИБКА ПРИ ОТПРАВКЕ ВОПРОСА:")
+        print(repr(e))
+
+        await message.answer(
+            "⚠️ Не удалось отправить вопрос Марине.\n"
+            "Попробуйте ещё раз позже."
+        )
+        return
 
     await state.clear()
 
     await message.answer(
-        "✅ Ваш вопрос отправлен Марине.\n\n"
-        "Она свяжется с вами, когда сможет."
+        "✅ <b>Ваш вопрос отправлен Марине!</b>\n\n"
+        "Она свяжется с вами, когда сможет\n\n"
+        "Вы можете продолжить работу с ботом:",
+        parse_mode="HTML",
+        reply_markup=main_menu_keyboard()
     )
 
 @dp.callback_query(lambda callback: callback.data == "partner_support")
@@ -676,16 +769,17 @@ async def partner_support_handler(callback: CallbackQuery):
 
     await callback.message.edit_text(
         with_version(
-            "🤝 Поддержка нашей команды\n\n"
+            "🤝 <b>Поддержка нашей команды</b>\n\n"
             "Вам не придётся самостоятельно придумывать, "
             "что писать и где искать людей.\n\n"
             "Наша команда предоставляет:\n\n"
-            "1. Готовый Telegram-бот с персональным QR-кодом.\n"
-            "2. Банк готового контента.\n"
-            "3. Помощь Марины и лидеров команды.\n"
-            "4. Обучение работе с бьюти-мастерами "
-            "и локальными площадками."
+            "1. <i>Готовый Telegram-бот с персональным QR-кодом.</i>\n"
+            "2. <i>Банк готового контента.</i>\n"
+            "3. <i>Помощь Марины и лидеров команды.</i>\n"
+            "4. <i>Обучение работе с бьюти-мастерами "
+            "и локальными площадками.</i>"
         ),
+        parse_mode="HTML",
         reply_markup=keyboard
     )
 
