@@ -14,10 +14,11 @@ load_dotenv()
 
 print("BOT_TOKEN найден:", os.getenv("BOT_TOKEN") is not None)
 print("APPLICATION_CHAT_ID:", os.getenv("APPLICATION_CHAT_ID"))
+print("BOT_VERSION:", os.getenv("BOT_VERSION"))
 
 TOKEN = os.getenv("BOT_TOKEN")
 APPLICATION_CHAT_ID = int(os.getenv("APPLICATION_CHAT_ID"))
-BOT_VERSION = os.getenv("BOT_VERSION", "unknown")
+BOT_VERSION = str(os.getenv("BOT_VERSION", "unknown"))
 
 
 dp = Dispatcher()
